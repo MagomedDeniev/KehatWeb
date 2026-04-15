@@ -112,7 +112,6 @@ export function ForgotPasswordForm({
                 <Input
                   id="email"
                   name="email"
-
                   aria-invalid={!!fieldErrors.email}
                 />
                 {fieldErrors.email ? (
@@ -127,7 +126,8 @@ export function ForgotPasswordForm({
                   {loading ? "Отправка..." : "Отправить письмо"}
                 </Button>
                 <FieldDescription className="text-center">
-                  <Link href="/login">Вернуться ко входу</Link>
+                  Вспомнили?{" "}
+                  <Link href="/login">Вернитесь ко входу</Link>
                 </FieldDescription>
               </Field>
             </FieldGroup>

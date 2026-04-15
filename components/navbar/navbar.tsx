@@ -25,7 +25,7 @@ type NavbarProps = {
 
 const links = [
   { href: "/about", label: "О нас" },
-  { href: "/projects", label: "Проекты" }
+  { href: "/projects", label: "Проекты" },
 ]
 
 export function Navbar({ user }: NavbarProps) {
@@ -38,41 +38,40 @@ export function Navbar({ user }: NavbarProps) {
           кехат
         </Link>
 
-        <nav className="hidden items-center gap-6 md:flex">
-          {links.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="text-sm text-muted-foreground transition-colors hover:text-foreground"
-            >
-              {link.label}
-            </Link>
-          ))}
-        </nav>
-
         <div className="hidden items-center gap-2 md:flex">
           {!user ? (
-            <>
-              <Button asChild>
-                <Link href="/login">Войти</Link>
-              </Button>
-            </>
+            <Button asChild>
+              <Link href="/login">Войти</Link>
+            </Button>
           ) : (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost">{user.data.username}</Button>
               </DropdownMenuTrigger>
+
               <DropdownMenuContent>
                 <DropdownMenuGroup>
                   <DropdownMenuLabel>Мой аккаунт</DropdownMenuLabel>
+
                   <DropdownMenuItem asChild>
                     <Link href={`/u/${user.data.username}`}>Профиль</Link>
                   </DropdownMenuItem>
+
                   <DropdownMenuItem asChild>
-                    <Link href="/settings">Настройки</Link>
+                    <Link href={`/u/${user.data.username}/settings`}>
+                      Настройки
+                    </Link>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem asChild>
+                    <Link href={`/u/${user.data.username}/password`}>
+                      Пароль
+                    </Link>
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
+
                 <DropdownMenuSeparator />
+
                 <DropdownMenuGroup>
                   <LogoutButton />
                 </DropdownMenuGroup>
@@ -95,7 +94,7 @@ export function Navbar({ user }: NavbarProps) {
       <div
         className={cn(
           "overflow-hidden border-t md:hidden",
-          open ? "max-h-80" : "max-h-0 border-t-0"
+          open ? "max-h-96" : "max-h-0 border-t-0"
         )}
       >
         <div className="mx-auto flex max-w-6xl flex-col gap-1 px-4 py-4">
@@ -110,17 +109,54 @@ export function Navbar({ user }: NavbarProps) {
             </Link>
           ))}
 
-          <div className="mt-3 flex flex-col gap-2">
-            <Button variant="ghost" asChild>
-              <Link href="/login">Войти</Link>
-            </Button>
-            <Button asChild>
-              <Link href="/signup">Начать</Link>
-            </Button>
-          </div>
+          {!user ? (
+            <div className="mt-3 flex flex-col gap-2">
+              <Button variant="ghost" asChild>
+                <Link href="/login" onClick={() => setOpen(false)}>
+                  Войти
+                </Link>
+              </Button>
+
+              <Button asChild>
+                <Link href="/signup" onClick={() => setOpen(false)}>
+                  Начать
+                </Link>
+              </Button>
+            </div>
+          ) : (
+            <div className="mt-3 flex flex-col gap-2">
+              <Button variant="ghost" asChild>
+                <Link
+                  href={`/u/${user.data.username}`}
+                  onClick={() => setOpen(false)}
+                >
+                  Профиль
+                </Link>
+              </Button>
+
+              <Button variant="ghost" asChild>
+                <Link
+                  href={`/u/${user.data.username}/settings`}
+                  onClick={() => setOpen(false)}
+                >
+                  Настройки
+                </Link>
+              </Button>
+
+              <Button variant="ghost" asChild>
+                <Link
+                  href={`/u/${user.data.username}/password`}
+                  onClick={() => setOpen(false)}
+                >
+                  Пароль
+                </Link>
+              </Button>
+
+              <LogoutButton variant="button" />
+            </div>
+          )}
         </div>
       </div>
-      <audio controls src="/temp/bobr.mp3"></audio>
     </header>
   )
 }

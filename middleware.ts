@@ -6,7 +6,10 @@ export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
 
   const isProtectedRoute =
-    pathname.startsWith("/dashboard") || pathname.startsWith("/profile")
+    pathname.startsWith("/dashboard") ||
+    pathname.startsWith("/profile") ||
+    /^\/u\/[^/]+\/settings$/.test(pathname) ||
+    /^\/u\/[^/]+\/password$/.test(pathname)
 
   if (isProtectedRoute && !token) {
     return NextResponse.redirect(new URL("/login", req.url))
@@ -20,5 +23,11 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/profile/:path*", "/login"],
+  matcher: [
+    "/dashboard/:path*",
+    "/profile/:path*",
+    "/u/:username/settings",
+    "/u/:username/password",
+    "/login",
+  ],
 }

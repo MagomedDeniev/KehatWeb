@@ -18,6 +18,7 @@ import {
 import { Input } from "@/components/ui/input"
 import React, { useState } from "react"
 import { useRouter } from "next/navigation"
+import { showToast } from "@/lib/toast"
 import Link from "next/link"
 
 export function LoginForm({
@@ -51,14 +52,20 @@ export function LoginForm({
       const data = await res.json()
 
       if (!res.ok) {
-        setError(data.message ?? "Ошибка входа")
+        showToast({
+          type: "error",
+          title: data.message ?? "Ошибка входа"
+        })
         return
       }
 
       router.push("/")
       router.refresh()
     } catch {
-      setError("Ошибка сети")
+      showToast({
+        type: "error",
+        title: "Ошибка входа"
+      })
     } finally {
       setLoading(false)
     }
@@ -73,15 +80,6 @@ export function LoginForm({
             Введите свою почту или имя пользователя
           </CardDescription>
         </CardHeader>
-        {error ? (
-          <CardContent>
-            <Field>
-              <FieldDescription className="text-sm text-red-500">
-                {error}
-              </FieldDescription>
-            </Field>
-          </CardContent>
-        ) : null}
         <CardContent>
           <form onSubmit={handleSubmit}>
             <FieldGroup>
