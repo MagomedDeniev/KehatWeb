@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation"
-import { ChangePasswordForm } from "@/components/change-password-form"
+import { ChangePasswordForm } from "@/components/forms/change-password-form"
 import { getCurrentUser } from "@/lib/auth"
 
 type PageProps = {

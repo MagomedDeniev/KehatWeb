@@ -1,4 +1,4 @@
-import { Navbar } from "@/components/navbar/navbar"
+import { Navbar } from "@/components/shared/navbar"
 import { getCurrentUser } from "@/lib/auth"
 
 export async function NavbarServer() {

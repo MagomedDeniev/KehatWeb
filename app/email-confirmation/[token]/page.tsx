@@ -1,5 +1,5 @@
 import { GalleryVerticalEndIcon } from "lucide-react"
-import { EmailConfirmationRedirect } from "@/components/email-confirmation-redirect"
+import { EmailConfirmationRedirect } from "@/components/shared/email-confirmation-redirect"
 
 type PageProps = {
   params: Promise<{

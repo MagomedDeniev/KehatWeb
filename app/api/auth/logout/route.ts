@@ -1,9 +1,11 @@
-import { cookies } from "next/headers"
-import { NextResponse } from "next/server"
+import { clearAccessTokenCookie } from "@/lib/server/session"
+import { apiResponse, apiError } from "@/lib/server/api"
 
 export async function POST() {
-  const cookieStore = await cookies()
-  cookieStore.delete("access_token")
-
-  return NextResponse.json({ ok: true })
+  try {
+    await clearAccessTokenCookie()
+    return apiResponse({ ok: true }, 200)
+  } catch {
+    return apiError()
+  }
 }

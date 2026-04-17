@@ -1,65 +1,45 @@
-import { cookies } from "next/headers"
-import { NextResponse } from "next/server"
-import { setAccessTokenCookie } from "@/lib/auth/session"
+import { apiRequest, apiResponse, apiError } from "@/lib/server/api"
+import { setAccessTokenCookie } from "@/lib/server/session"
+
+type RequestBody = {
+  email: string
+  username: string
+  gender: string
+  birthDate: string
+}
 
 export async function POST(req: Request) {
   try {
-    const token = (await cookies()).get("access_token")?.value
-
-    if (!token) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: {
-            code: "unauthorized",
-            message: "Требуется авторизация.",
-          },
-        },
-        { status: 401 }
-      )
-    }
-
-    const body = await req.json()
-
-    const res = await fetch(`${process.env.API_URL}/me/settings`, {
+    const result = await apiRequest<RequestBody>({
+      req,
       method: "PATCH",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
+      path: "/me/settings",
+      auth: true,
+      pickBody: (body) => ({
+        email: body.email,
+        username: body.username,
+        gender: body.gender,
+        birthDate: body.birthDate,
+      }),
     })
 
-    const data = await res.json()
+    const token = result.body?.data?.token
 
-    if (!res.ok || !data.success) {
-      return NextResponse.json(data, { status: res.status })
+    if (token) {
+      await setAccessTokenCookie(token)
     }
 
-    const nextToken = data.data?.token
+    // Удаляем токен из ответа, чтобы токен не попал в клиент
+    const safeData = { ...result.body.data }
+    delete safeData.token
 
-    if (nextToken) {
-      await setAccessTokenCookie(nextToken)
+    const responseBody = {
+      ...result.body,
+      data: safeData,
     }
 
-    return NextResponse.json(
-      {
-        success: true,
-        data: data.data,
-        message: data.message,
-      },
-      { status: res.status }
-    )
+    return apiResponse(responseBody, result.status)
   } catch {
-    return NextResponse.json(
-      {
-        success: false,
-        error: {
-          code: "server_error",
-          message: "Ошибка сервера.",
-        },
-      },
-      { status: 500 }
-    )
+    return apiError()
   }
 }

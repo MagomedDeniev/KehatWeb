@@ -1,5 +1,5 @@
 import { Geist_Mono, Inter } from "next/font/google"
-import { NavbarServer } from "@/components/navbar/navbar-server"
+import { NavbarServer } from "@/components/shared/navbar-server"
 import { Toaster } from "@/components/ui/sonner"
 
 import "./globals.css"
@@ -32,7 +32,6 @@ export default function RootLayout({
     >
       <body>
         <Toaster />
-
         <ThemeProvider>
           <div className="flex min-h-svh flex-col">
             <NavbarServer />

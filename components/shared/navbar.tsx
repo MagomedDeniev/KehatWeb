@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 
 import { cn } from "@/lib/utils"
-import { LogoutButton } from "@/components/logout-button"
+import { LogoutButton } from "@/components/shared/logout-button"
 import type { CurrentUser } from "@/lib/auth"
 
 type NavbarProps = {
@@ -34,7 +34,7 @@ export function Navbar({ user }: NavbarProps) {
   return (
     <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
-        <Link href="/" className="text-lg font-semibold tracking-tight">
+        <Link href="/public" className="text-lg font-semibold tracking-tight">
           кехат
         </Link>
 

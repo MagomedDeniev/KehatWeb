@@ -1,44 +1,24 @@
-import { NextResponse } from "next/server"
+import { apiRequest, apiResponse, apiError } from "@/lib/server/api"
+
+type RequestBody = {
+  token: string
+  password: string
+}
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json()
-
-    const res = await fetch(`${process.env.API_URL}/restore/password`, {
+    const result = await apiRequest<RequestBody>({
+      req,
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+      path: "/restore/password",
+      pickBody: (body) => ({
         token: body.token,
         password: body.password,
       }),
     })
 
-    const data = await res.json()
-
-    if (!res.ok || !data.success) {
-      return NextResponse.json(data, { status: res.status })
-    }
-
-    return NextResponse.json(
-      {
-        success: true,
-        data: data.data,
-        message: data.message,
-      },
-      { status: res.status }
-    )
+    return apiResponse(result.body, result.status)
   } catch {
-    return NextResponse.json(
-      {
-        success: false,
-        error: {
-          code: "server_error",
-          message: "Ошибка сервера.",
-        },
-      },
-      { status: 500 }
-    )
+    return apiError()
   }
 }

@@ -1,6 +1,6 @@
 "use client"
 
-import { RegisterForm } from "@/components/register-form"
+import { RegisterForm } from "@/components/forms/register-form"
 import { GalleryVerticalEndIcon } from "lucide-react"
 
 export default function RegisterPage() {

@@ -1,5 +1,5 @@
 import { GalleryVerticalEndIcon } from "lucide-react"
-import { RestorePasswordForm } from "@/components/restore-password-form"
+import { RestorePasswordForm } from "@/components/forms/restore-password-form"
 
 type PageProps = {
   params: Promise<{

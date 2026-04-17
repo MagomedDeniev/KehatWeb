@@ -1,5 +1,5 @@
 import { notFound, redirect } from "next/navigation"
-import { SettingsForm } from "@/components/settings-form"
+import { SettingsForm } from "@/components/forms/settings-form"
 import { getCurrentUser } from "@/lib/auth"
 
 type PageProps = {

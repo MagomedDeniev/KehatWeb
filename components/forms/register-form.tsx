@@ -1,38 +1,38 @@
 "use client"
 
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
 import {
+  Button,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import {
   Field,
   FieldDescription,
   FieldGroup,
   FieldLabel,
-} from "@/components/ui/field"
-import { Input } from "@/components/ui/input"
-import Link from "next/link"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Label } from "@/components/ui/label"
-
-import React, { useState } from "react"
-import {
+  RadioGroup,
+  RadioGroupItem,
+  Label,
+  Input,
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui"
 
-import { toFieldErrorMap } from "@/lib/api/form-errors"
-import { validateRegisterPayload, toRegisterRequestBody } from "@/lib/validators/register"
+import React, { useState } from "react"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
+
+import {
+  validateRegisterPayload,
+  toRegisterRequestBody,
+} from "@/lib/validators/register"
+import { toFieldErrorMap } from "@/lib/api/form-errors"
 import { showToast } from "@/lib/toast"
+import { cn } from "@/lib/utils"
 
 export function RegisterForm({
   className,

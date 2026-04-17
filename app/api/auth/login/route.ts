@@ -1,42 +1,37 @@
-import { NextResponse } from "next/server"
-import { setAccessTokenCookie } from "@/lib/auth/session"
+import { setAccessTokenCookie } from "@/lib/server/session"
+import { apiRequest, apiResponse, apiError } from "@/lib/server/api"
+
+type RequestBody = {
+  email: string
+  password: string
+}
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json()
-
-    const res = await fetch(`${process.env.API_URL}/login_check`, {
+    const result = await apiRequest<RequestBody>({
+      req,
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+      path: "/login_check",
+      pickBody: (body) => ({
         email: body.email,
         password: body.password,
       }),
     })
 
-    const data = await res.json()
-
-    if (!res.ok) {
-      return NextResponse.json(
-        { message: data.message ?? "Login failed" },
-        { status: res.status }
-      )
+    if (result.status < 200 || result.status >= 300) {
+      return apiResponse(result.body, result.status)
     }
 
-    const token = data.token
+    const token = result.body.token
 
     if (!token) {
-      return NextResponse.json(
-        { message: "Token not found in response" },
-        { status: 500 }
-      )
+      return apiError()
     }
 
     await setAccessTokenCookie(token)
-    return NextResponse.json({ ok: true })
+
+    return apiResponse({ ok: true }, result.status)
   } catch {
-    return NextResponse.json({ message: "Server error" }, { status: 500 })
+    return apiError()
   }
 }

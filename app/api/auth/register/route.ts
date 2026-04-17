@@ -1,59 +1,51 @@
-import { NextResponse } from "next/server"
-import { setAccessTokenCookie } from "@/lib/auth/session"
+import { apiRequest, apiResponse, apiError } from "@/lib/server/api"
+import { setAccessTokenCookie } from "@/lib/server/session"
+
+type RequestBody = {
+  username: string
+  gender: string
+  birthDate: string
+  email: string
+  password: string
+}
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json()
-
-    const res = await fetch(`${process.env.API_URL}/register`, {
+    const result = await apiRequest<RequestBody>({
+      req,
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
+      path: "/register",
+      pickBody: (body) => ({
+        username: body.username,
+        gender: body.gender,
+        birthDate: body.birthDate,
+        email: body.email,
+        password: body.password,
+      }),
     })
 
-    const data = await res.json()
-
-    if (!res.ok || !data.success) {
-      return NextResponse.json(data, { status: res.status })
+    if (result.status < 200 || result.status >= 300) {
+      return apiResponse(result.body, result.status)
     }
 
-    const token = data.data?.token
+    const token = result.body.data?.token
 
     if (!token) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: {
-            code: "token_not_found",
-            message: "Данные идентификации не получены.",
-          },
-        },
-        { status: 500 }
-      )
+      return apiError()
     }
 
     await setAccessTokenCookie(token)
 
-    return NextResponse.json(
-      {
-        success: true,
-        data: data.data,
-        message: data.message,
-      },
-      { status: res.status }
-    )
+    const safeData = { ...result.body.data }
+    delete safeData.token
+
+    const responseBody = {
+      ...result.body,
+      data: safeData,
+    }
+
+    return apiResponse(responseBody, result.status)
   } catch {
-    return NextResponse.json(
-      {
-        success: false,
-        error: {
-          code: "server_error",
-          message: "Ошибка сервера.",
-        },
-      },
-      { status: 500 }
-    )
+    return apiError()
   }
 }

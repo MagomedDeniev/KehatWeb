@@ -1,33 +1,24 @@
-import { NextResponse } from "next/server"
+import { apiRequest, apiResponse, apiError } from "@/lib/server/api"
+
+type RequestBody = {
+  token: string
+  type: string
+}
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json()
-
-    const res = await fetch(`${process.env.API_URL}/auth/check/token`, {
+    const result = await apiRequest<RequestBody>({
+      req,
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+      path: "/auth/check/token",
+      pickBody: (body) => ({
         token: body.token,
         type: body.type,
       }),
     })
 
-    const data = await res.json()
-
-    return NextResponse.json(data, { status: res.status })
+    return apiResponse(result.body, result.status)
   } catch {
-    return NextResponse.json(
-      {
-        success: false,
-        error: {
-          code: "server_error",
-          message: "Ошибка сервера.",
-        },
-      },
-      { status: 500 }
-    )
+    return apiError()
   }
 }
