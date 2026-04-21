@@ -1,13 +1,15 @@
-import { Geist_Mono, Inter } from "next/font/google"
-import { NavbarServer } from "@/components/shared/navbar-server"
-import { Toaster } from "@/components/ui/sonner"
+import { cn } from "@/lib/utils"
+import { Toaster } from "@/components/ui"
 
-import "./globals.css"
+import { NavbarServer } from "@/components/shared/navbar-server"
 import { ThemeProvider } from "@/components/theme-provider"
-import { cn } from "@/lib/utils";
+import { Geist_Mono, Inter } from "next/font/google"
 import React from "react"
 
-const inter = Inter({subsets:['latin'],variable:'--font-sans'})
+import "./globals.css"
+import "./layout.css"
+
+const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 
 const fontMono = Geist_Mono({
   subsets: ["latin"],
@@ -32,10 +34,12 @@ export default function RootLayout({
     >
       <body>
         <Toaster />
+        <NavbarServer />
         <ThemeProvider>
           <div className="flex min-h-svh flex-col">
-            <NavbarServer />
-            <div className="mx-auto w-full max-w-6xl px-4">{children}</div>
+            <div className="kht-container flex max-w-7xl">
+              { children }
+            </div>
           </div>
         </ThemeProvider>
       </body>

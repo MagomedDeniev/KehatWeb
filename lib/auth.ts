@@ -1,4 +1,5 @@
 import { cookies } from "next/headers"
+import { coreUrl, corePaths } from "@/lib/core/routes"
 
 export type CurrentUser = {
   data: {
@@ -18,7 +19,7 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
     return null
   }
 
-  const res = await fetch(`${process.env.API_URL}/me`, {
+  const res = await fetch(coreUrl(corePaths.account.user), {
     method: "GET",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -48,16 +49,13 @@ export type UserProfile = {
 export async function getUserProfile(
   username: string
 ): Promise<UserProfile | null> {
-  const res = await fetch(
-    `${process.env.API_URL}/users/profile/${encodeURIComponent(username)}`,
-    {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      cache: "no-store",
-    }
-  )
+  const res = await fetch(coreUrl(corePaths.users.user(username)), {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    cache: "no-store",
+  })
 
   if (res.status === 404) {
     return null

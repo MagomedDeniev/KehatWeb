@@ -3,40 +3,34 @@ import { setAccessTokenCookie } from "@/lib/core/session"
 import { coreUrl, corePaths } from "@/lib/core/routes"
 
 type RequestBody = {
+  email: string
   username: string
   gender: string
   birthDate: string
-  email: string
-  password: string
 }
 
 export async function POST(req: Request) {
   try {
     const result = await apiRequest<RequestBody>({
       req,
-      method: "POST",
-      url: coreUrl(corePaths.auth.register),
+      method: "PATCH",
+      url: coreUrl(corePaths.account.settings),
+      auth: true,
       pickBody: (body) => ({
+        email: body.email,
         username: body.username,
         gender: body.gender,
         birthDate: body.birthDate,
-        email: body.email,
-        password: body.password,
       }),
     })
 
-    if (result.status < 200 || result.status >= 300) {
-      return apiResponse(result.body, result.status)
+    const token = result.body?.data?.token
+
+    if (token) {
+      await setAccessTokenCookie(token)
     }
 
-    const token = result.body.data?.token
-
-    if (!token) {
-      return apiError()
-    }
-
-    await setAccessTokenCookie(token)
-
+    // Удаляем токен из ответа, чтобы токен не попал в клиент
     const safeData = { ...result.body.data }
     delete safeData.token
 

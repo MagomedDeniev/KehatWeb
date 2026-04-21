@@ -2,19 +2,20 @@ import { apiRequest, apiResponse, apiError } from "@/lib/core/api"
 import { coreUrl, corePaths } from "@/lib/core/routes"
 
 type RequestBody = {
-  token: string
-  type: string
+  currentPassword: string
+  newPassword: string
 }
 
 export async function POST(req: Request) {
   try {
     const result = await apiRequest<RequestBody>({
       req,
-      method: "POST",
-      url: coreUrl(corePaths.auth.tokenCheck),
+      method: "PATCH",
+      url: coreUrl(corePaths.account.password),
+      auth: true,
       pickBody: (body) => ({
-        token: body.token,
-        type: body.type,
+        currentPassword: body.currentPassword,
+        newPassword: body.newPassword,
       }),
     })
 

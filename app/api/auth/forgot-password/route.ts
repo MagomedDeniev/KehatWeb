@@ -1,4 +1,5 @@
-import { apiRequest, apiResponse, apiError } from "@/lib/server/api"
+import { apiRequest, apiResponse, apiError } from "@/lib/core/api"
+import { coreUrl, corePaths } from "@/lib/core/routes"
 
 type RequestBody = {
   email: string
@@ -9,7 +10,7 @@ export async function POST(req: Request) {
     const result = await apiRequest<RequestBody>({
       req,
       method: "POST",
-      path: "/forgot/password",
+      url: coreUrl(corePaths.auth.passwordForgot),
       pickBody: (body) => ({
         email: body.email,
       }),

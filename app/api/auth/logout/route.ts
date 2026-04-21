@@ -1,5 +1,5 @@
-import { clearAccessTokenCookie } from "@/lib/server/session"
-import { apiResponse, apiError } from "@/lib/server/api"
+import { clearAccessTokenCookie } from "@/lib/core/session"
+import { apiResponse, apiError } from "@/lib/core/api"
 
 export async function POST() {
   try {

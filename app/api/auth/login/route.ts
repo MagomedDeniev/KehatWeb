@@ -1,5 +1,6 @@
-import { setAccessTokenCookie } from "@/lib/server/session"
-import { apiRequest, apiResponse, apiError } from "@/lib/server/api"
+import { setAccessTokenCookie } from "@/lib/core/session"
+import { apiRequest, apiResponse, apiError } from "@/lib/core/api"
+import { coreUrl, corePaths } from "@/lib/core/routes"
 
 type RequestBody = {
   email: string
@@ -11,7 +12,7 @@ export async function POST(req: Request) {
     const result = await apiRequest<RequestBody>({
       req,
       method: "POST",
-      path: "/login_check",
+      url: coreUrl(corePaths.auth.login),
       pickBody: (body) => ({
         email: body.email,
         password: body.password,

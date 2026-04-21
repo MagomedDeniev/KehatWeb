@@ -1,0 +1,28 @@
+:root {
+    --kht-navbar-height: 64px;
+    --kht-layout-gap: 16px;
+    --kht-container-max: 1280px;
+}
+
+.kht-gap { gap: var(--kht-layout-gap) }
+.kht-mt { margin-top: var(--kht-layout-gap) }
+.kht-mb { margin-bottom: var(--kht-layout-gap) }
+.kht-ml { margin-left: var(--kht-layout-gap) }
+.kht-mr { margin-right: var(--kht-layout-gap) }
+.kht-m { margin: var(--kht-layout-gap) }
+
+.kht-navbar-container {
+    height: var(--kht-navbar-height);
+}
+
+.kht-navbar-offset-top {
+    top: calc(var(--kht-navbar-height) + var(--kht-layout-gap))
+}
+
+.kht-container {
+    width: 100%;
+    max-width: var(--kht-container-max);
+    margin-top: calc(var(--kht-navbar-height) + var(--kht-layout-gap));
+    margin-inline: auto;
+    padding-inline: var(--kht-layout-gap);
+}

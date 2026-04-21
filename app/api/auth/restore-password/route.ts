@@ -1,4 +1,5 @@
-import { apiRequest, apiResponse, apiError } from "@/lib/server/api"
+import { apiRequest, apiResponse, apiError } from "@/lib/core/api"
+import { coreUrl, corePaths } from "@/lib/core/routes"
 
 type RequestBody = {
   token: string
@@ -10,7 +11,7 @@ export async function POST(req: Request) {
     const result = await apiRequest<RequestBody>({
       req,
       method: "POST",
-      path: "/restore/password",
+      url: coreUrl(corePaths.auth.passwordRestore),
       pickBody: (body) => ({
         token: body.token,
         password: body.password,

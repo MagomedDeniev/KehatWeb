@@ -1,11 +1,8 @@
 "use client"
 
-import Link from "next/link"
-import { useState } from "react"
-import { Menu, X } from "lucide-react"
-
-import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 import {
+  Button,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuGroup,
@@ -13,36 +10,43 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui"
 
-import { cn } from "@/lib/utils"
-import { LogoutButton } from "@/components/shared/logout-button"
+import { LogoutButton } from "@/components/auth/logout-button"
 import type { CurrentUser } from "@/lib/auth"
+import { Menu, X } from "lucide-react"
+import { useState } from "react"
+import Link from "next/link"
+
+import { viewRoutes } from "@/lib/routes"
 
 type NavbarProps = {
   user: CurrentUser | null
 }
 
-const links = [
-  { href: "/about", label: "О нас" },
-  { href: "/projects", label: "Проекты" },
-]
-
 export function Navbar({ user }: NavbarProps) {
   const [open, setOpen] = useState(false)
 
   return (
-    <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
-        <Link href="/public" className="text-lg font-semibold tracking-tight">
+    <header className="kht-navbar fixed top-0 z-50 min-w-full border-b bg-background/60 text-foreground backdrop-blur">
+      <div className="kht-navbar-container mx-auto flex max-w-6xl items-center justify-between px-4">
+        <Link
+          href={viewRoutes.home}
+          className="text-lg font-semibold tracking-tight"
+        >
           кехат
         </Link>
 
         <div className="hidden items-center gap-2 md:flex">
           {!user ? (
-            <Button asChild>
-              <Link href="/login">Войти</Link>
-            </Button>
+            <>
+              <Button asChild>
+                <Link href={viewRoutes.auth.login}>Войти</Link>
+              </Button>
+              <Button variant="outline" asChild>
+                <Link href={viewRoutes.auth.register}>Регистрация</Link>
+              </Button>
+            </>
           ) : (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -54,18 +58,8 @@ export function Navbar({ user }: NavbarProps) {
                   <DropdownMenuLabel>Мой аккаунт</DropdownMenuLabel>
 
                   <DropdownMenuItem asChild>
-                    <Link href={`/u/${user.data.username}`}>Профиль</Link>
-                  </DropdownMenuItem>
-
-                  <DropdownMenuItem asChild>
-                    <Link href={`/u/${user.data.username}/settings`}>
-                      Настройки
-                    </Link>
-                  </DropdownMenuItem>
-
-                  <DropdownMenuItem asChild>
-                    <Link href={`/u/${user.data.username}/password`}>
-                      Пароль
+                    <Link href={viewRoutes.user.profile(user.data.username)}>
+                      Профиль
                     </Link>
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
@@ -98,57 +92,34 @@ export function Navbar({ user }: NavbarProps) {
         )}
       >
         <div className="mx-auto flex max-w-6xl flex-col gap-1 px-4 py-4">
-          {links.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              onClick={() => setOpen(false)}
-            >
-              {link.label}
-            </Link>
-          ))}
-
           {!user ? (
-            <div className="mt-3 flex flex-col gap-2">
-              <Button variant="ghost" asChild>
-                <Link href="/login" onClick={() => setOpen(false)}>
+            <div className="flex flex-col gap-2">
+              <Button asChild>
+                <Link
+                  href={viewRoutes.auth.login}
+                  onClick={() => setOpen(false)}
+                >
                   Войти
                 </Link>
               </Button>
 
-              <Button asChild>
-                <Link href="/signup" onClick={() => setOpen(false)}>
-                  Начать
+              <Button variant="outline" asChild>
+                <Link
+                  href={viewRoutes.auth.register}
+                  onClick={() => setOpen(false)}
+                >
+                  Регистрация
                 </Link>
               </Button>
             </div>
           ) : (
-            <div className="mt-3 flex flex-col gap-2">
+            <div className="flex flex-col gap-2">
               <Button variant="ghost" asChild>
                 <Link
-                  href={`/u/${user.data.username}`}
+                  href={viewRoutes.user.profile(user.data.username)}
                   onClick={() => setOpen(false)}
                 >
                   Профиль
-                </Link>
-              </Button>
-
-              <Button variant="ghost" asChild>
-                <Link
-                  href={`/u/${user.data.username}/settings`}
-                  onClick={() => setOpen(false)}
-                >
-                  Настройки
-                </Link>
-              </Button>
-
-              <Button variant="ghost" asChild>
-                <Link
-                  href={`/u/${user.data.username}/password`}
-                  onClick={() => setOpen(false)}
-                >
-                  Пароль
                 </Link>
               </Button>
 
