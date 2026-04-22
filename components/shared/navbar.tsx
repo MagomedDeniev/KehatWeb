@@ -14,8 +14,8 @@ import {
 
 import { LogoutButton } from "@/components/auth/logout-button"
 import type { CurrentUser } from "@/lib/auth"
-import { Menu, X } from "lucide-react"
-import { useState } from "react"
+import { Menu, GalleryVerticalEndIcon, X } from "lucide-react"
+import React, { useState } from "react"
 import Link from "next/link"
 
 import { viewRoutes } from "@/lib/routes"
@@ -34,7 +34,12 @@ export function Navbar({ user }: NavbarProps) {
           href={viewRoutes.home}
           className="text-lg font-semibold tracking-tight"
         >
-          кехат
+          <span className="flex items-center gap-2 self-center font-medium">
+            <div className="flex size-6 items-center justify-center rounded-md bg-primary text-primary-foreground">
+              <GalleryVerticalEndIcon className="size-4" />
+            </div>
+            <b>кехат.</b>
+          </span>
         </Link>
 
         <div className="hidden items-center gap-2 md:flex">
