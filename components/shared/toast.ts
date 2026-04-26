@@ -1,6 +1,7 @@
 import { toast, type ExternalToast } from "sonner"
 
 type AppToastType = "success" | "error" | "info" | "warning" | "loading"
+const ToastPosition = "top-center"
 
 type ShowToastOptions = {
   type: AppToastType
@@ -13,7 +14,7 @@ export function showToast({
   type,
   title,
   description,
-  position = "top-center",
+  position = ToastPosition,
 }: ShowToastOptions) {
   const options: ExternalToast = {
     description,
@@ -31,5 +32,17 @@ export function showToast({
       return toast.warning(title, options)
     case "loading":
       return toast.loading(title, options)
+  }
+}
+
+type DefaultToastType = "serverError" | "testError"
+
+export function showDefaultToast(type: DefaultToastType) {
+  switch (type) {
+    case "serverError":
+      return toast.success("Ошибка сервера", {
+        description: "Проблема со связью или с сервером.",
+        position: ToastPosition,
+      })
   }
 }

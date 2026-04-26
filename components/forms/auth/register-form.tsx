@@ -8,67 +8,46 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-  Field,
   FieldDescription,
   FieldGroup,
-  FieldLabel,
-  RadioGroup,
-  RadioGroupItem,
-  Label,
-  Input,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Field,
 } from "@/components/ui"
-
-import { toFieldErrorMap } from "@/lib/api/form-errors"
-import { showToast } from "@/components/shared/toast"
+import {
+  FormDate,
+  FormGender,
+  FormInput,
+  FormPasswordPair,
+} from "@/components/forms/fields"
+import { toFieldErrorMap } from "@/lib/validation/form-errors"
+import { showDefaultToast, showToast } from "@/components/shared/toast"
 import { useRouter } from "next/navigation"
 import React, { useState } from "react"
 import Link from "next/link"
-
-import {
-  validateRegisterPayload,
-  toRegisterRequestBody,
-} from "@/lib/validators/register"
-
-import { apiRoutes, viewRoutes } from "@/lib/routes"
+import { validateRegisterForm } from "@/lib/validation/validators/register-validator"
+import { apiRoutes } from "@/lib/routes/api-routes"
+import { viewRoutes } from "@/lib/routes/view-routes"
 
 export function RegisterForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const [gender, setGender] = useState("")
-  const [birthDay, setBirthDay] = useState("")
-  const [birthMonth, setBirthMonth] = useState("")
-  const [birthYear, setBirthYear] = useState("")
   const [loading, setLoading] = useState(false)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const router = useRouter()
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault()
     setFieldErrors({})
     setLoading(true)
 
     try {
+      // Собираем все значения полей формы
       const formData = new FormData(e.currentTarget)
 
-      const formPayload = {
-        username: String(formData.get("username") ?? ""),
-        gender: String(formData.get("gender") ?? ""),
-        birthDate: String(formData.get("birthDate") ?? ""),
-        email: String(formData.get("email") ?? ""),
-        password: String(formData.get("password") ?? ""),
-        confirmedPassword: String(formData.get("confirmedPassword") ?? ""),
-      }
+      const form = validateRegisterForm(formData)
 
-      const validationError = validateRegisterPayload(formPayload)
-
-      if (validationError) {
-        setFieldErrors(toFieldErrorMap(validationError))
+      if (!form.success) {
+        setFieldErrors(toFieldErrorMap(form))
         return
       }
 
@@ -77,37 +56,37 @@ export function RegisterForm({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(toRegisterRequestBody(formPayload)),
+        body: JSON.stringify(form.data),
       })
 
       const data = await res.json()
 
-      if (data.error && data.error.code == "server_error") {
-        showToast({
-          type: "error",
-          title: "Ошибка сервера",
-          description: "Проблема со связью или с сервером."
-        })
+      if (data.error && data.error.code === "server_error") {
+        showDefaultToast("serverError")
+        return
       }
 
+      // API возвращает ошибки, которые могут быть проверены только после отправки запроса
       if (!res.ok || !data.success) {
-        setFieldErrors(toFieldErrorMap(data))
+        const nextFieldErrors = toFieldErrorMap(data)
+        setFieldErrors(nextFieldErrors)
+
+        if (Object.keys(nextFieldErrors).length === 0) {
+          showDefaultToast("serverError")
+        }
+
         return
       }
 
       showToast({
         type: "success",
-        title: "Успешная регистрация",
-        description: data.message,
+        title: data.message,
       })
+
       router.push("/")
       router.refresh()
     } catch {
-      showToast({
-        type: "error",
-        title: "Ошибка сервера",
-        description: "Проблема со связью или с сервером."
-      })
+      showDefaultToast("serverError")
     } finally {
       setLoading(false)
     }
@@ -125,182 +104,40 @@ export function RegisterForm({
         <CardContent>
           <form onSubmit={handleSubmit}>
             <FieldGroup>
-              <Field>
-                <FieldLabel htmlFor="username">Имя пользователя</FieldLabel>
-                <Input
-                  id="username"
-                  name="username"
-                  type="text"
-                  aria-invalid={!!fieldErrors.username}
-                />
-                {fieldErrors.username ? (
-                  <FieldDescription className="text-sm text-red-500">
-                    {fieldErrors.username}
-                  </FieldDescription>
-                ) : null}
-              </Field>
-              <Field>
-                <FieldLabel>Пол</FieldLabel>
-                <RadioGroup
-                  className="flex gap-6 pt-2"
-                  value={gender}
-                  onValueChange={setGender}
-                >
-                  <div className="flex items-center gap-2">
-                    <RadioGroupItem
-                      value="male"
-                      id="gender-male"
-                      aria-invalid={!!fieldErrors.gender}
-                    />
-                    <Label htmlFor="gender-male">Мужской</Label>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <RadioGroupItem
-                      value="female"
-                      id="gender-female"
-                      aria-invalid={!!fieldErrors.gender}
-                    />
-                    <Label htmlFor="gender-female">Женский</Label>
-                  </div>
-                </RadioGroup>
-                <input type="hidden" name="gender" value={gender} />
-                {fieldErrors.gender ? (
-                  <FieldDescription className="text-sm text-red-500">
-                    {fieldErrors.gender}
-                  </FieldDescription>
-                ) : null}
-              </Field>
+              <FormInput
+                label="Имя пользователя"
+                name="username"
+                error={fieldErrors.username}
+              />
 
-              <Field>
-                <FieldLabel>Дата рождения</FieldLabel>
+              <FormGender
+                label="Пол"
+                name="gender"
+                error={fieldErrors.gender}
+              />
 
-                <div className="grid grid-cols-3 gap-3">
-                  <Select value={birthDay} onValueChange={setBirthDay}>
-                    <SelectTrigger
-                      className="w-full"
-                      aria-invalid={!!fieldErrors.birthDate}
-                    >
-                      <SelectValue placeholder="День" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Array.from({ length: 31 }, (_, i) => {
-                        const day = String(i + 1)
-                        return (
-                          <SelectItem key={day} value={day}>
-                            {day}
-                          </SelectItem>
-                        )
-                      })}
-                    </SelectContent>
-                  </Select>
+              <FormDate
+                label="Дата рождения"
+                name="birthDate"
+                error={fieldErrors.birthDate}
+              />
 
-                  <Select value={birthMonth} onValueChange={setBirthMonth}>
-                    <SelectTrigger
-                      className="w-full"
-                      aria-invalid={!!fieldErrors.birthDate}
-                    >
-                      <SelectValue placeholder="Месяц" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="01">Январь</SelectItem>
-                      <SelectItem value="02">Февраль</SelectItem>
-                      <SelectItem value="03">Март</SelectItem>
-                      <SelectItem value="04">Апрель</SelectItem>
-                      <SelectItem value="05">Май</SelectItem>
-                      <SelectItem value="06">Июнь</SelectItem>
-                      <SelectItem value="07">Июль</SelectItem>
-                      <SelectItem value="08">Август</SelectItem>
-                      <SelectItem value="09">Сентябрь</SelectItem>
-                      <SelectItem value="10">Октябрь</SelectItem>
-                      <SelectItem value="11">Ноябрь</SelectItem>
-                      <SelectItem value="12">Декабрь</SelectItem>
-                    </SelectContent>
-                  </Select>
+              <FormInput
+                label="Электронная почта"
+                name="email"
+                type="email"
+                error={fieldErrors.email}
+              />
 
-                  <Select value={birthYear} onValueChange={setBirthYear}>
-                    <SelectTrigger
-                      className="w-full"
-                      aria-invalid={!!fieldErrors.birthDate}
-                    >
-                      <SelectValue placeholder="Год" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Array.from({ length: 100 }, (_, i) => {
-                        const year = String(new Date().getFullYear() - i)
-                        return (
-                          <SelectItem key={year} value={year}>
-                            {year}
-                          </SelectItem>
-                        )
-                      })}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <input
-                  type="hidden"
-                  name="birthDate"
-                  value={
-                    birthYear && birthMonth && birthDay
-                      ? `${birthYear}-${birthMonth}-${birthDay.padStart(2, "0")}`
-                      : ""
-                  }
-                />
-                {fieldErrors.birthDate ? (
-                  <FieldDescription className="text-sm text-red-500">
-                    {fieldErrors.birthDate}
-                  </FieldDescription>
-                ) : null}
-              </Field>
+              <FormPasswordPair error={fieldErrors.password} />
 
-              <Field>
-                <FieldLabel htmlFor="email">Электронная почта</FieldLabel>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  aria-invalid={!!fieldErrors.email}
-                />
-                {fieldErrors.email ? (
-                  <FieldDescription className="text-sm text-red-500">
-                    {fieldErrors.email}
-                  </FieldDescription>
-                ) : null}
-              </Field>
-              <Field>
-                <Field className="grid grid-cols-2 gap-4">
-                  <Field>
-                    <FieldLabel htmlFor="password">Пароль</FieldLabel>
-                    <Input
-                      id="password"
-                      name="password"
-                      type="password"
-                      aria-invalid={!!fieldErrors.password}
-                    />
-                  </Field>
-                  <Field>
-                    <FieldLabel htmlFor="confirmedPassword">
-                      Подтвердить пароль
-                    </FieldLabel>
-                    <Input
-                      id="confirmedPassword"
-                      name="confirmedPassword"
-                      type="password"
-                      aria-invalid={!!fieldErrors.password}
-                    />
-                  </Field>
-                </Field>
-                {fieldErrors.password ? (
-                  <FieldDescription className="text-sm text-red-500">
-                    {fieldErrors.password}
-                  </FieldDescription>
-                ) : null}
-              </Field>
               <Field>
                 <Button type="submit" disabled={loading}>
                   {loading ? "Регистрация..." : "Создать аккаунт"}
                 </Button>
                 <FieldDescription className="text-center">
-                  Уже есть свой аккаунт? <Link href={viewRoutes.auth.login}>Войдите</Link>
+                  Уже есть свой аккаунт?{" "}
+                  <Link href={viewRoutes.auth.login}>Войдите</Link>
                 </FieldDescription>
               </Field>
             </FieldGroup>

@@ -8,25 +8,18 @@ import {
   CardHeader,
   CardTitle,
   Button,
-  Field,
   FieldDescription,
   FieldGroup,
-  FieldLabel,
-  Input,
 } from "@/components/ui"
-
-import { toFieldErrorMap } from "@/lib/api/form-errors"
-import { showToast } from "@/components/shared/toast"
+import { toFieldErrorMap } from "@/lib/validation/form-errors"
+import { showDefaultToast, showToast } from "@/components/shared/toast"
 import { useRouter } from "next/navigation"
 import React, { useState } from "react"
 import Link from "next/link"
-
-import {
-  toChangePasswordRequestBody,
-  validateChangePasswordPayload,
-} from "@/lib/validators/change-password"
-
-import { apiRoutes, viewRoutes } from "@/lib/routes"
+import { apiRoutes } from "@/lib/routes/api-routes"
+import { viewRoutes } from "@/lib/routes/view-routes"
+import { FormInput, FormPasswordPair } from "@/components/forms/fields"
+import { validatePasswordForm } from "@/lib/validation/validators/change-password-validator"
 
 type ChangePasswordFormProps = React.ComponentProps<"div"> & {
   username: string
@@ -41,24 +34,19 @@ export function ChangePasswordForm({
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const router = useRouter()
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault()
     setFieldErrors({})
     setLoading(true)
 
     try {
+      // Собираем все значения полей формы
       const formData = new FormData(e.currentTarget)
 
-      const formPayload = {
-        currentPassword: String(formData.get("currentPassword") ?? ""),
-        newPassword: String(formData.get("newPassword") ?? ""),
-        confirmedPassword: String(formData.get("confirmedPassword") ?? ""),
-      }
+      const form = validatePasswordForm(formData)
 
-      const validationError = validateChangePasswordPayload(formPayload)
-
-      if (validationError) {
-        setFieldErrors(toFieldErrorMap(validationError))
+      if (!form.success) {
+        setFieldErrors(toFieldErrorMap(form))
         return
       }
 
@@ -67,33 +55,23 @@ export function ChangePasswordForm({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(toChangePasswordRequestBody(formPayload)),
+        body: JSON.stringify(form.data),
       })
 
       const data = await res.json()
 
       if (data.error && data.error.code === "server_error") {
-        showToast({
-          type: "error",
-          title: "Ошибка сервера",
-          description: "Проблема со связью или с сервером.",
-        })
+        showDefaultToast("serverError")
         return
       }
 
+      // API возвращает ошибки, которые могут быть проверены только после отправки запроса
       if (!res.ok || !data.success) {
         const nextFieldErrors = toFieldErrorMap(data)
         setFieldErrors(nextFieldErrors)
 
         if (Object.keys(nextFieldErrors).length === 0) {
-          showToast({
-            type: "error",
-            title: "Не удалось изменить пароль",
-            description:
-              data.error?.message ??
-              data.message ??
-              "Проверьте данные и попробуйте еще раз.",
-          })
+          showDefaultToast("serverError")
         }
 
         return
@@ -101,18 +79,13 @@ export function ChangePasswordForm({
 
       showToast({
         type: "success",
-        title: "Пароль изменен",
-        description: data.message,
+        title: data.message,
       })
 
       router.replace(`/user/${username}`)
       router.refresh()
     } catch {
-      showToast({
-        type: "error",
-        title: "Ошибка сервера",
-        description: "Проблема со связью или с сервером.",
-      })
+      showDefaultToast("serverError")
     } finally {
       setLoading(false)
     }
@@ -131,50 +104,20 @@ export function ChangePasswordForm({
         <CardContent>
           <form onSubmit={handleSubmit}>
             <FieldGroup>
-              <Field>
-                <FieldLabel htmlFor="currentPassword">
-                  Текущий пароль
-                </FieldLabel>
-                <Input
-                  id="currentPassword"
-                  name="currentPassword"
-                  type="password"
-                  aria-invalid={!!fieldErrors.currentPassword}
-                />
-                {fieldErrors.currentPassword ? (
-                  <FieldDescription className="text-sm text-red-500">
-                    {fieldErrors.currentPassword}
-                  </FieldDescription>
-                ) : null}
-              </Field>
+              <FormInput
+                label="Текущий пароль"
+                name="currentPassword"
+                type="password"
+                error={fieldErrors.currentPassword}
+              />
 
-              <Field>
-                <FieldLabel htmlFor="newPassword">Новый пароль</FieldLabel>
-                <Input
-                  id="newPassword"
-                  name="newPassword"
-                  type="password"
-                  aria-invalid={!!fieldErrors.newPassword}
-                />
-              </Field>
-
-              <Field>
-                <FieldLabel htmlFor="confirmedPassword">
-                  Повторите новый пароль
-                </FieldLabel>
-                <Input
-                  id="confirmedPassword"
-                  name="confirmedPassword"
-                  type="password"
-                  aria-invalid={!!fieldErrors.newPassword}
-                />
-              </Field>
-
-              {fieldErrors.newPassword ? (
-                <FieldDescription className="text-sm text-red-500">
-                  {fieldErrors.newPassword}
-                </FieldDescription>
-              ) : null}
+              <FormPasswordPair
+                error={fieldErrors.newPassword}
+                passwordLabel="Новый пароль"
+                passwordName="newPassword"
+                confirmLabel="Повторите новый пароль"
+                confirmName="confirmedPassword"
+              />
 
               <div className="flex items-center justify-between gap-3">
                 <Button type="submit" disabled={loading}>

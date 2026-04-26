@@ -11,22 +11,16 @@ import {
   Field,
   FieldDescription,
   FieldGroup,
-  FieldLabel,
-  Input,
 } from "@/components/ui"
-
-import { showToast } from "@/components/shared/toast"
-import { toFieldErrorMap } from "@/lib/api/form-errors"
+import { showDefaultToast, showToast } from "@/components/shared/toast"
+import { toFieldErrorMap } from "@/lib/validation/form-errors"
 import React, { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-
-import {
-  toRestorePasswordRequestBody,
-  validateRestorePasswordPayload,
-} from "@/lib/validators/restore-password"
-
-import { apiRoutes, viewRoutes } from "@/lib/routes"
+import { apiRoutes } from "@/lib/routes/api-routes"
+import { viewRoutes } from "@/lib/routes/view-routes"
+import { validateRestorePasswordForm } from "@/lib/validation/validators/restore-password-validator"
+import { FormPasswordPair } from "@/components/forms/fields"
 
 type RestorePasswordFormProps = React.ComponentProps<"div"> & {
   token: string
@@ -82,11 +76,7 @@ export function RestorePasswordForm({
           return
         }
 
-        showToast({
-          type: "error",
-          title: "Ошибка сервера",
-          description: "Проблема со связью или с сервером.",
-        })
+        showDefaultToast("serverError")
         router.replace("/auth/login")
       } finally {
         if (!cancelled) {
@@ -102,23 +92,19 @@ export function RestorePasswordForm({
     }
   }, [router, token])
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault()
     setFieldErrors({})
     setLoading(true)
 
     try {
       const formData = new FormData(e.currentTarget)
+      formData.set("token", token)
 
-      const formPayload = {
-        password: String(formData.get("password") ?? ""),
-        confirmedPassword: String(formData.get("confirmedPassword") ?? ""),
-      }
+      const form = validateRestorePasswordForm(formData)
 
-      const validationError = validateRestorePasswordPayload(formPayload)
-
-      if (validationError) {
-        setFieldErrors(toFieldErrorMap(validationError))
+      if (!form.success) {
+        setFieldErrors(toFieldErrorMap(form))
         return
       }
 
@@ -127,32 +113,23 @@ export function RestorePasswordForm({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(toRestorePasswordRequestBody(token, formPayload)),
+        body: JSON.stringify(form.data),
       })
 
       const data = await res.json()
 
       if (data.error && data.error.code === "server_error") {
-        showToast({
-          type: "error",
-          title: "Ошибка сервера",
-          description: "Проблема со связью или с сервером.",
-        })
+        showDefaultToast("serverError")
+        return
       }
 
+      // API возвращает ошибки, которые могут быть проверены только после отправки запроса
       if (!res.ok || !data.success) {
         const nextFieldErrors = toFieldErrorMap(data)
         setFieldErrors(nextFieldErrors)
 
         if (Object.keys(nextFieldErrors).length === 0) {
-          showToast({
-            type: "error",
-            title: "Не удалось обновить пароль",
-            description:
-              data.error?.message ??
-              data.message ??
-              "Попробуйте запросить новую ссылку восстановления.",
-          })
+          showDefaultToast("serverError")
         }
 
         return
@@ -160,18 +137,13 @@ export function RestorePasswordForm({
 
       showToast({
         type: "success",
-        title: "Пароль обновлен",
-        description: data.message,
+        title: data.message,
       })
 
       router.push("/auth/login")
       router.refresh()
     } catch {
-      showToast({
-        type: "error",
-        title: "Ошибка сервера",
-        description: "Проблема со связью или с сервером.",
-      })
+      showDefaultToast("serverError")
     } finally {
       setLoading(false)
     }
@@ -209,38 +181,7 @@ export function RestorePasswordForm({
         <CardContent>
           <form onSubmit={handleSubmit}>
             <FieldGroup>
-              <Field>
-                <Field className="grid gap-4 sm:grid-cols-2">
-                  <Field>
-                    <FieldLabel htmlFor="password">Пароль</FieldLabel>
-                    <Input
-                      id="password"
-                      name="password"
-                      type="password"
-                      aria-invalid={!!fieldErrors.password}
-                    />
-                  </Field>
-
-                  <Field>
-                    <FieldLabel htmlFor="confirmedPassword">
-                      Подтвердить пароль
-                    </FieldLabel>
-                    <Input
-                      id="confirmedPassword"
-                      name="confirmedPassword"
-                      type="password"
-                      aria-invalid={!!fieldErrors.password}
-                    />
-                  </Field>
-                </Field>
-
-                {fieldErrors.password ? (
-                  <FieldDescription className="text-sm text-red-500">
-                    {fieldErrors.password}
-                  </FieldDescription>
-                ) : null}
-              </Field>
-
+              <FormPasswordPair error={fieldErrors.password} />
               <Field>
                 <Button type="submit" disabled={loading}>
                   {loading ? "Сохранение..." : "Сохранить новый пароль"}

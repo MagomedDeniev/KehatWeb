@@ -1,9 +1,8 @@
 import { Card, CardContent, Separator, Button } from "@/components/ui"
 import { notFound } from "next/navigation"
-import { getUserProfile } from "@/lib/auth"
-import { ContactIcon } from "lucide-react"
-import { LucideCog } from "lucide-react"
-import { viewRoutes } from "@/lib/routes"
+import { getUserProfile } from "@/lib/core/auth"
+import { Settings } from "lucide-react"
+import { viewRoutes } from "@/lib/routes/view-routes"
 import Link from "next/link"
 
 type PageProps = {
@@ -39,13 +38,15 @@ export default async function Page({ params }: PageProps) {
             <p className="text-sm text-muted-foreground">
               Зарегистрирован: {profile.registeredAt}
             </p>
-            <p className="text-sm text-muted-foreground">
+            <p className="flex items-center text-sm text-muted-foreground">
               <Button variant="secondary" size="sm">
-                <ContactIcon /> Редактировать
+                <Link href={viewRoutes.user.edit(profile.username)}>
+                  Редактировать
+                </Link>
               </Button>
-              <Button variant="secondary" size="sm" asChild>
+              <Button variant="secondary" size="sm">
                 <Link href={viewRoutes.user.settings(profile.username)}>
-                  <LucideCog />
+                  <Settings />
                 </Link>
               </Button>
             </p>

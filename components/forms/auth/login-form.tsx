@@ -14,13 +14,12 @@ import {
   FieldGroup,
   FieldLabel,
 } from "@/components/ui"
-
 import { showToast } from "@/components/shared/toast"
 import { useRouter } from "next/navigation"
 import React, { useState } from "react"
 import Link from "next/link"
-
-import { apiRoutes, viewRoutes } from "@/lib/routes"
+import { apiRoutes } from "@/lib/routes/api-routes"
+import { viewRoutes } from "@/lib/routes/view-routes"
 
 export function LoginForm({
   className,
@@ -32,7 +31,7 @@ export function LoginForm({
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault()
     setLoading(true)
 
@@ -53,7 +52,7 @@ export function LoginForm({
       if (!res.ok) {
         showToast({
           type: "error",
-          title: data.message ?? "Ошибка входа"
+          title: data.message ?? "Ошибка входа",
         })
         return
       }
@@ -63,7 +62,7 @@ export function LoginForm({
     } catch {
       showToast({
         type: "error",
-        title: "Ошибка входа"
+        title: "Ошибка входа",
       })
     } finally {
       setLoading(false)

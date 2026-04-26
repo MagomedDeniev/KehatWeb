@@ -13,12 +13,12 @@ import {
 } from "@/components/ui"
 
 import { LogoutButton } from "@/components/auth/logout-button"
-import type { CurrentUser } from "@/lib/auth"
+import type { CurrentUser } from "@/lib/core/auth"
 import { Menu, GalleryVerticalEndIcon, X } from "lucide-react"
 import React, { useState } from "react"
 import Link from "next/link"
 
-import { viewRoutes } from "@/lib/routes"
+import { viewRoutes } from "@/lib/routes/view-routes"
 
 type NavbarProps = {
   user: CurrentUser | null
@@ -73,6 +73,7 @@ export function Navbar({ user }: NavbarProps) {
 
                 <DropdownMenuGroup>
                   <LogoutButton />
+                  <LogoutButton scope="all" />
                 </DropdownMenuGroup>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -129,6 +130,7 @@ export function Navbar({ user }: NavbarProps) {
               </Button>
 
               <LogoutButton variant="button" />
+              <LogoutButton variant="button" scope="all" />
             </div>
           )}
         </div>

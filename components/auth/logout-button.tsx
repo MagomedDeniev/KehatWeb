@@ -18,28 +18,34 @@ import {
   AlertDialogMedia,
   AlertDialogTitle,
 } from "@/components/ui"
-import { apiRoutes } from "@/lib/routes"
+import { apiRoutes } from "@/lib/routes/api-routes"
 
 type LogoutButtonProps = {
   variant?: "dropdown" | "button"
+  scope?: "current" | "all"
   className?: string
 }
 
 export function LogoutButton({
   variant = "dropdown",
+  scope = "current",
   className,
 }: LogoutButtonProps) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const [loading, setLoading] = useState(false)
+  const isGlobalLogout = scope === "all"
 
   async function handleLogout() {
     try {
       setLoading(true)
 
-      const res = await fetch(apiRoutes.auth.logout, {
-        method: "POST",
-      })
+      const res = await fetch(
+        isGlobalLogout ? apiRoutes.auth.logoutAll : apiRoutes.auth.logout,
+        {
+          method: "POST",
+        }
+      )
 
       if (!res.ok) {
         throw new Error("Logout failed")
@@ -52,12 +58,17 @@ export function LogoutButton({
       showToast({
         type: "error",
         title: "Ошибка сервера",
-        description: "Не удалось выйти из аккаунта.",
+        description: isGlobalLogout
+          ? "Не удалось завершить все сеансы."
+          : "Не удалось выйти из аккаунта.",
       })
     } finally {
       setLoading(false)
     }
   }
+
+  const idleLabel = isGlobalLogout ? "Выйти везде" : "Выйти"
+  const loadingLabel = isGlobalLogout ? "Завершаем..." : "Выходим..."
 
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
@@ -71,7 +82,7 @@ export function LogoutButton({
           }}
           disabled={loading}
         >
-          {loading ? "Выходим..." : "Выйти"}
+          {loading ? loadingLabel : idleLabel}
         </DropdownMenuItem>
       ) : (
         <Button
@@ -81,7 +92,7 @@ export function LogoutButton({
           onClick={() => setOpen(true)}
           disabled={loading}
         >
-          {loading ? "Выходим..." : "Выйти"}
+          {loading ? loadingLabel : idleLabel}
         </Button>
       )}
 
@@ -90,9 +101,15 @@ export function LogoutButton({
           <AlertDialogMedia className="bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive">
             <LogOutIcon />
           </AlertDialogMedia>
-          <AlertDialogTitle>Выйти из аккаунта?</AlertDialogTitle>
+          <AlertDialogTitle>
+            {isGlobalLogout
+              ? "Выйти на всех устройствах?"
+              : "Выйти из аккаунта?"}
+          </AlertDialogTitle>
           <AlertDialogDescription>
-            Текущая сессия будет завершена на этом устройстве.
+            {isGlobalLogout
+              ? "Все активные сеансы будут завершены. Для продолжения потребуется новый вход."
+              : "Текущая сессия будет завершена на этом устройстве."}
           </AlertDialogDescription>
         </AlertDialogHeader>
 
@@ -103,7 +120,7 @@ export function LogoutButton({
             onClick={handleLogout}
             disabled={loading}
           >
-            {loading ? "Выходим..." : "Выйти"}
+            {loading ? loadingLabel : idleLabel}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

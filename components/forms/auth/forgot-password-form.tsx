@@ -11,18 +11,16 @@ import {
   Field,
   FieldDescription,
   FieldGroup,
-  FieldLabel,
-  Input,
 } from "@/components/ui"
-
-import { validateForgotPasswordPayload } from "@/lib/validators/forgot-password"
-import { toFieldErrorMap } from "@/lib/api/form-errors"
-import { showToast } from "@/components/shared/toast"
+import { toFieldErrorMap } from "@/lib/validation/form-errors"
+import { showDefaultToast, showToast } from "@/components/shared/toast"
 import { useRouter } from "next/navigation"
 import React, { useState } from "react"
 import Link from "next/link"
-
-import { apiRoutes, viewRoutes } from "@/lib/routes"
+import { apiRoutes } from "@/lib/routes/api-routes"
+import { viewRoutes } from "@/lib/routes/view-routes"
+import { FormInput } from "@/components/forms/fields"
+import { validateForgotPasswordForm } from "@/lib/validation/validators/forgot-password-validator"
 
 export function ForgotPasswordForm({
   className,
@@ -32,7 +30,7 @@ export function ForgotPasswordForm({
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const router = useRouter()
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault()
     setFieldErrors({})
     setLoading(true)
@@ -40,14 +38,10 @@ export function ForgotPasswordForm({
     try {
       const formData = new FormData(e.currentTarget)
 
-      const formPayload = {
-        email: String(formData.get("email") ?? ""),
-      }
+      const form = validateForgotPasswordForm(formData)
 
-      const validationError = validateForgotPasswordPayload(formPayload)
-
-      if (validationError) {
-        setFieldErrors(toFieldErrorMap(validationError))
+      if (!form.success) {
+        setFieldErrors(toFieldErrorMap(form))
         return
       }
 
@@ -56,38 +50,37 @@ export function ForgotPasswordForm({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(formPayload),
+        body: JSON.stringify(form.data),
       })
 
       const data = await res.json()
 
       if (data.error && data.error.code === "server_error") {
-        showToast({
-          type: "error",
-          title: "Ошибка сервера",
-          description: "Проблема со связью или с сервером.",
-        })
+        showDefaultToast("serverError")
+        return
       }
 
+      // API возвращает ошибки, которые могут быть проверены только после отправки запроса
       if (!res.ok || !data.success) {
-        setFieldErrors(toFieldErrorMap(data))
+        const nextFieldErrors = toFieldErrorMap(data)
+        setFieldErrors(nextFieldErrors)
+
+        if (Object.keys(nextFieldErrors).length === 0) {
+          showDefaultToast("serverError")
+        }
+
         return
       }
 
       showToast({
         type: "success",
-        title: "Письмо отправлено",
-        description: data.message,
+        title: data.message,
       })
 
       router.push("/auth/login")
       router.refresh()
     } catch {
-      showToast({
-        type: "error",
-        title: "Ошибка сервера",
-        description: "Проблема со связью или с сервером.",
-      })
+      showDefaultToast("serverError")
     } finally {
       setLoading(false)
     }
@@ -106,19 +99,12 @@ export function ForgotPasswordForm({
         <CardContent>
           <form onSubmit={handleSubmit}>
             <FieldGroup>
-              <Field>
-                <FieldLabel htmlFor="email">Электронная почта</FieldLabel>
-                <Input
-                  id="email"
-                  name="email"
-                  aria-invalid={!!fieldErrors.email}
-                />
-                {fieldErrors.email ? (
-                  <FieldDescription className="text-sm text-red-500">
-                    {fieldErrors.email}
-                  </FieldDescription>
-                ) : null}
-              </Field>
+              <FormInput
+                label="Электронная почта"
+                name="email"
+                type="email"
+                error={fieldErrors.email}
+              />
 
               <Field>
                 <Button type="submit" disabled={loading}>

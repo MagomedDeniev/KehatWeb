@@ -1,6 +1,5 @@
 import { apiRequest, apiResponse, apiError } from "@/lib/core/api"
-import { setAccessTokenCookie } from "@/lib/core/session"
-import { coreUrl, corePaths } from "@/lib/core/routes"
+import { coreRoutes } from "@/lib/routes/core-routes"
 
 type RequestBody = {
   email: string
@@ -14,7 +13,7 @@ export async function POST(req: Request) {
     const result = await apiRequest<RequestBody>({
       req,
       method: "PATCH",
-      url: coreUrl(corePaths.account.settings),
+      url: coreRoutes.account.settings,
       auth: true,
       pickBody: (body) => ({
         email: body.email,
@@ -24,22 +23,7 @@ export async function POST(req: Request) {
       }),
     })
 
-    const token = result.body?.data?.token
-
-    if (token) {
-      await setAccessTokenCookie(token)
-    }
-
-    // Удаляем токен из ответа, чтобы токен не попал в клиент
-    const safeData = { ...result.body.data }
-    delete safeData.token
-
-    const responseBody = {
-      ...result.body,
-      data: safeData,
-    }
-
-    return apiResponse(responseBody, result.status)
+    return apiResponse(result.body, result.status)
   } catch {
     return apiError()
   }

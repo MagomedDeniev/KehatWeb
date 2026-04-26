@@ -1,8 +1,8 @@
 import Link from "next/link"
 import { MessageCircle, Rows3, Search, Bell } from "lucide-react"
 
-import { getCurrentUser } from "@/lib/auth"
-import { viewRoutes } from "@/lib/routes"
+import { getCurrentUser } from "@/lib/core/auth"
+import { viewRoutes } from "@/lib/routes/view-routes"
 import {
   Button,
   Card,

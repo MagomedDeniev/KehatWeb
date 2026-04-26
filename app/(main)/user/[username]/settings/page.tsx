@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation"
 import { ChangeSettingsForm } from "@/components/forms/account/change-settings-form"
-import { getCurrentUser } from "@/lib/auth"
+import { getCurrentUser } from "@/lib/core/auth"
 
 type PageProps = {
   params: Promise<{

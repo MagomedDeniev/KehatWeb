@@ -1,5 +1,5 @@
 import { EmailConfirmationRedirect } from "@/components/auth/email-confirmation-redirect"
-import { coreUrl, corePaths } from "@/lib/core/routes"
+import { coreRoutes } from "@/lib/routes/core-routes"
 
 type PageProps = {
   params: Promise<{
@@ -15,7 +15,7 @@ export default async function EmailConfirmationPage({ params }: PageProps) {
   let errorType: "invalid" | "server" = "invalid"
 
   try {
-    const res = await fetch(coreUrl(corePaths.auth.emailConfirm), {
+    const res = await fetch(coreRoutes.auth.emailConfirm, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

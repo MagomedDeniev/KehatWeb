@@ -1,6 +1,6 @@
-import { setAccessTokenCookie } from "@/lib/core/session"
+import { setAuthCookies } from "@/lib/core/session"
 import { apiRequest, apiResponse, apiError } from "@/lib/core/api"
-import { coreUrl, corePaths } from "@/lib/core/routes"
+import { coreRoutes } from "@/lib/routes/core-routes"
 
 type RequestBody = {
   email: string
@@ -12,7 +12,8 @@ export async function POST(req: Request) {
     const result = await apiRequest<RequestBody>({
       req,
       method: "POST",
-      url: coreUrl(corePaths.auth.login),
+      url: coreRoutes.auth.login,
+      includeClientMeta: true,
       pickBody: (body) => ({
         email: body.email,
         password: body.password,
@@ -23,15 +24,26 @@ export async function POST(req: Request) {
       return apiResponse(result.body, result.status)
     }
 
-    const token = result.body.token
+    const tokens = result.body?.data
 
-    if (!token) {
+    if (
+      !tokens?.accessToken ||
+      typeof tokens.accessTokenExpiresIn !== "number" ||
+      !tokens.refreshToken ||
+      !tokens.refreshTokenExpiresAt
+    ) {
       return apiError()
     }
 
-    await setAccessTokenCookie(token)
+    await setAuthCookies(tokens)
 
-    return apiResponse({ ok: true }, result.status)
+    return apiResponse(
+      {
+        success: true,
+        message: result.body?.message ?? "Login successful.",
+      },
+      result.status
+    )
   } catch {
     return apiError()
   }

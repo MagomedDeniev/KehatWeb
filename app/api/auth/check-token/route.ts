@@ -1,5 +1,5 @@
 import { apiRequest, apiResponse, apiError } from "@/lib/core/api"
-import { coreUrl, corePaths } from "@/lib/core/routes"
+import { coreRoutes } from "@/lib/routes/core-routes"
 
 type RequestBody = {
   token: string
@@ -11,7 +11,7 @@ export async function POST(req: Request) {
     const result = await apiRequest<RequestBody>({
       req,
       method: "POST",
-      url: coreUrl(corePaths.auth.tokenCheck),
+      url: coreRoutes.auth.tokenCheck,
       pickBody: (body) => ({
         token: body.token,
         type: body.type,

@@ -1,9 +1,9 @@
-import type { ApiErrorResponse, ApiFieldError } from "./types"
+import type { ResponderErrorResponse, ResponderFieldError } from "./responder-types"
 
 export function createValidationError(
-  fields: ApiFieldError[],
+  fields: ResponderFieldError[],
   message = "Validation failed."
-): ApiErrorResponse {
+): ResponderErrorResponse {
   return {
     success: false,
     error: {
@@ -14,7 +14,7 @@ export function createValidationError(
   }
 }
 
-export function toFieldErrorMap(response: ApiErrorResponse) {
+export function toFieldErrorMap(response: ResponderErrorResponse) {
   return Object.fromEntries(
     (response.error.fields ?? []).map((item) => [item.field, item.message])
   ) as Record<string, string>

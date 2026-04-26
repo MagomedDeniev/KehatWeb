@@ -1,5 +1,5 @@
 import { apiRequest, apiResponse, apiError } from "@/lib/core/api"
-import { coreUrl, corePaths } from "@/lib/core/routes"
+import { coreRoutes } from "@/lib/routes/core-routes"
 
 type RequestBody = {
   currentPassword: string
@@ -11,7 +11,7 @@ export async function POST(req: Request) {
     const result = await apiRequest<RequestBody>({
       req,
       method: "PATCH",
-      url: coreUrl(corePaths.account.password),
+      url: coreRoutes.account.password,
       auth: true,
       pickBody: (body) => ({
         currentPassword: body.currentPassword,
